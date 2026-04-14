@@ -1,6 +1,4 @@
 # Frontend Exclusion
-TravelPlan_Frontend/
-
 # Build and IDE files
 target/
 .idea/
