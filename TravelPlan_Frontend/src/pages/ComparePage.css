@@ -1,0 +1,67 @@
+.compare-form {
+  max-width: 900px;
+  margin: 0 auto 40px;
+  padding: 32px;
+}
+
+.compare-results {
+  margin-top: 24px;
+}
+
+.recommendation {
+  padding: 20px;
+  text-align: center;
+  font-size: 16px;
+  margin-bottom: 24px;
+  border-left: 3px solid var(--primary);
+}
+
+.compare-grid {
+  margin-top: 20px;
+}
+
+.compare-card {
+  padding: 28px;
+  text-align: center;
+}
+
+.compare-tier {
+  font-family: 'Outfit', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.compare-price {
+  font-family: 'Outfit', sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.compare-pp {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.compare-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: left;
+}
+
+.compare-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.compare-row span {
+  color: var(--text-secondary);
+}
