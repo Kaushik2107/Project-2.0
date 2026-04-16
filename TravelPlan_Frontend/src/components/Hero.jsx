@@ -5,9 +5,9 @@ import './Hero.css';
 
 export default function Hero() {
   const features = [
-    { icon: <Brain size={24} />, title: 'AI-Powered Planning', desc: 'Knapsack + Greedy algorithms optimize your trip', color: '#6C63FF' },
-    { icon: <Users size={24} />, title: 'Group Trip Splitting', desc: 'Smart cost sharing — hotel rooms, transport pooling', color: '#FF6B9D' },
-    { icon: <Map size={24} />, title: 'Proximity Routing', desc: 'Haversine-based nearest-neighbor TSP optimization', color: '#00D4FF' },
+    { icon: <Brain size={24} />, title: 'Smart Planning', desc: 'Optimized itineraries for your perfect trip', color: '#6C63FF' },
+    { icon: <Users size={24} />, title: 'Group Trip Splitting', desc: 'Cost sharing — hotel rooms, transport pooling', color: '#FF6B9D' },
+    { icon: <Map size={24} />, title: 'Proximity Routing', desc: 'Intelligent routing for nearest destinations', color: '#00D4FF' },
     { icon: <TrendingUp size={24} />, title: 'Budget Comparison', desc: 'Compare 3 budget tiers side-by-side', color: '#00E676' },
   ];
 
@@ -27,7 +27,7 @@ export default function Hero() {
         >
           <div className="hero-badge">
             <Sparkles size={14} />
-            AI-Powered Travel Planner
+            Premium Travel Planner
           </div>
 
           <h1 className="hero-title">
@@ -37,7 +37,7 @@ export default function Hero() {
 
           <p className="hero-subtitle">
             Smart budget optimization, real restaurant recommendations, proximity-based itineraries,
-            group cost splitting, and 14+ AI features — all in one platform.
+            group cost splitting, and 14+ premium features — all in one platform.
           </p>
 
           <div className="hero-actions">
@@ -52,12 +52,12 @@ export default function Hero() {
           <div className="hero-stats">
             <div className="stat">
               <span className="stat-value">14+</span>
-              <span className="stat-label">AI Features</span>
+              <span className="stat-label">Features</span>
             </div>
             <div className="stat-divider"></div>
             <div className="stat">
-              <span className="stat-value">5</span>
-              <span className="stat-label">Algorithms</span>
+              <span className="stat-value">Smart</span>
+              <span className="stat-label">Routing</span>
             </div>
             <div className="stat-divider"></div>
             <div className="stat">

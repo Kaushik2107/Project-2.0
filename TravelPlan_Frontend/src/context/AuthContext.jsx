@@ -17,15 +17,10 @@ export function AuthProvider({ children }) {
       try {
         setUser(JSON.parse(savedUser));
       } catch (e) {
-        // Auto-login as guest if saved data is corrupted
-        const guest = { loggedIn: true, profileComplete: true, name: 'Traveler', email: 'guest@travelmind.app', avatar: '🌍' };
-        setUser(guest);
+        setUser(null);
       }
     } else {
-      // Auto-login as guest — no registration required
-      const guest = { loggedIn: true, profileComplete: true, name: 'Traveler', email: 'guest@travelmind.app', avatar: '🌍' };
-      setUser(guest);
-      localStorage.setItem('travelmind_user', JSON.stringify(guest));
+      setUser(null);
     }
     setLoading(false);
   }, []);

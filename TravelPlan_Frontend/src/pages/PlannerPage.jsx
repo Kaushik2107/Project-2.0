@@ -18,7 +18,7 @@ const CITIES = [
     id: 'Manali', label: 'Manali', emoji: '🏔️',
     tagline: 'Snow, Trek & Serenity',
     tags: ['Mountains', 'Adventure', 'Nature'],
-    image: 'https://images.pexels.com/photos/1365425/pexels-photo-1365425.jpeg?auto=compress&cs=tinysrgb&w=800',
+    image: 'https://images.unsplash.com/photo-1600947509785-29fb4e7d1362?auto=format&fit=crop&q=80&w=1000',
     gradient: 'linear-gradient(135deg, #134E5E, #71B280)',
   },
   {
@@ -35,8 +35,6 @@ const TRAVEL_STYLES = [
   { id: 'SOLO', label: 'Solo', emoji: '🧍' },
   { id: 'FRIENDS', label: 'Friends', emoji: '👯' },
   { id: 'COUPLE', label: 'Couple', emoji: '💑' },
-  { id: 'LUXURY', label: 'Luxury', emoji: '💎' },
-  { id: 'BUDGET', label: 'Budget', emoji: '🎒' },
 ];
 
 const PACES = [
@@ -144,7 +142,7 @@ export default function PlannerPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <span className="planner-badge">AI Trip Planner ✈️</span>
+          <span className="planner-badge">Smart Trip Planner ✈️</span>
           <h1>Plan Your <span className="gradient-text">Dream Trip</span></h1>
           <p>Tell us about yourself — we'll craft the perfect itinerary</p>
         </motion.div>
@@ -345,7 +343,7 @@ export default function PlannerPage() {
                 <><Sparkles size={20} /> Generate My Itinerary</>
               )}
             </motion.button>
-            <p className="submit-note">⚡ Powered by Knapsack optimization · Haversine routing · AI scoring</p>
+
           </motion.div>
 
         </form>

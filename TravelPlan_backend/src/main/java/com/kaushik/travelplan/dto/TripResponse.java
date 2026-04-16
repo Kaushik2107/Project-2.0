@@ -58,6 +58,7 @@ public class TripResponse {
     private String tripVibe;
     private String weatherForecast;
     private String arrivalDetails; // info about transport from source city
+    private String cityImageUrl;
 
 
     public int getTotalCost() { return totalCost; }
@@ -137,4 +138,6 @@ public class TripResponse {
 
     public String getWeatherForecast() { return weatherForecast; }
     public void setWeatherForecast(String weatherForecast) { this.weatherForecast = weatherForecast; }
+    public String getCityImageUrl() { return cityImageUrl; }
+    public void setCityImageUrl(String cityImageUrl) { this.cityImageUrl = cityImageUrl; }
 }

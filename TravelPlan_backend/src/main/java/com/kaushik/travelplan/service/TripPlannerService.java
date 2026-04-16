@@ -40,6 +40,7 @@ public class TripPlannerService {
     @Autowired private TransportService transportService;
     @Autowired private TripScoringService tripScoringService;
     @Autowired private GroupTripService groupTripService;
+    @Autowired private ImageService imageService;
 
     // ═══════════════════════════════════════════════
     //  MAIN ENTRY POINT
@@ -236,6 +237,25 @@ public class TripPlannerService {
                 restaurantCost = foodCost; // Keep standard local food cost
             }
 
+            // ── Dynamic Image Hydration ──
+            if (bestHotel != null && (bestHotel.getImageUrl() == null || bestHotel.getImageUrl().contains("unsplash") || bestHotel.getImageUrl().startsWith("/images/") || bestHotel.getImageUrl().isEmpty() || bestHotel.getImageUrl().contains("null"))) {
+                bestHotel.setImageUrl(imageService.fetchImageForLocation(bestHotel.getName() + " " + city + " hotel"));
+            }
+            if (selectedPlaces != null) {
+                selectedPlaces.parallelStream().forEach(p -> {
+                    if (p.getImageUrl() == null || p.getImageUrl().contains("unsplash") || p.getImageUrl().startsWith("/images/") || p.getImageUrl().isEmpty() || p.getImageUrl().contains("null")) {
+                        p.setImageUrl(imageService.fetchImageForLocation(p.getName() + " " + city));
+                    }
+                });
+            }
+            if (restaurants != null) {
+                restaurants.parallelStream().forEach(r -> {
+                    if (r.getImageUrl() == null || r.getImageUrl().contains("unsplash") || r.getImageUrl().startsWith("/images/") || r.getImageUrl().isEmpty() || r.getImageUrl().contains("null")) {
+                        r.setImageUrl(imageService.fetchImageForLocation(r.getName() + " " + city + " restaurant"));
+                    }
+                });
+            }
+
             // ── Calculate totals ──
             int placesCost = selectedPlaces.stream().mapToInt(Place::getEntryFee).sum() * travelers;
             int totalCost = hotelCost + foodCost + transportCost + placesCost;
@@ -251,6 +271,7 @@ public class TripPlannerService {
             res.setPlacesCost(placesCost);
             res.setTotalCost(totalCost);
             res.setPerPersonCost(totalCost / travelers);
+            res.setCityImageUrl(imageService.fetchImageForLocation(city + " travel"));
 
             // Restaurants
             res.setRestaurants(restaurants);
@@ -315,6 +336,10 @@ public class TripPlannerService {
         TripResponse res = new TripResponse();
         res.setHotel(bestHotel);
         res.setHotelCost(hotelCost);
+        if (bestHotel != null && (bestHotel.getImageUrl() == null || bestHotel.getImageUrl().contains("unsplash") || bestHotel.getImageUrl().startsWith("/images/") || bestHotel.getImageUrl().isEmpty() || bestHotel.getImageUrl().contains("null"))) {
+            bestHotel.setImageUrl(imageService.fetchImageForLocation(bestHotel.getName() + " " + city + " hotel"));
+        }
+
         res.setFoodCost(foodCost);
         res.setTotalCost(hotelCost + foodCost);
         res.setPerPersonCost((hotelCost + foodCost) / travelers);

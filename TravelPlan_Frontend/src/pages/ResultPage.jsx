@@ -59,7 +59,7 @@ export default function ResultPage() {
   const bb = plan.budgetBreakdown;
   const gcb = plan.groupCostBreakdown;
   const cityKey = request?.city?.toLowerCase() || 'goa';
-  const hero = CITY_HEROES[cityKey] || CITY_HEROES.goa;
+  const hero = plan.cityImageUrl ? { img: plan.cityImageUrl, gradient: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%)' } : (CITY_HEROES[cityKey] || CITY_HEROES.goa);
 
   const getScoreColor = (val) => {
     if (val >= 85) return '#00E676';
@@ -482,7 +482,7 @@ export default function ResultPage() {
 
             {plan.suggestionMessage && (
               <motion.div className="rp-section rp-suggestion" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
-                <div className="rp-section-title"><Lightbulb size={20} /> AI Insight</div>
+              <div className="rp-section-title"><Lightbulb size={20} /> Planner Insight</div>
                 <p>{plan.suggestionMessage}</p>
               </motion.div>
             )}

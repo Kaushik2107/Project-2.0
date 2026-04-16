@@ -58,7 +58,7 @@ export default function LoginPage() {
         <div className="login-brand">
           <motion.div className="login-logo" animate={{ rotate: [0, 5, -5, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}>✈️</motion.div>
           <h1 className="login-title">Travel<span className="gradient-text">Mind</span></h1>
-          <p className="login-subtitle">AI-Powered Travel Planner</p>
+          <p className="login-subtitle">Your Personal Travel Companion</p>
         </div>
 
         <div className="login-card glass-card">
@@ -107,25 +107,7 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="login-footer" style={{ marginTop: '24px' }}>
-            <Sparkles size={14} />
-            <span>Powered by advanced AI algorithms</span>
-          </div>
         </div>
-
-        <motion.div className="login-features" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 0.6 }}>
-          {[
-            { emoji: '🧠', text: 'Smart Optimization' },
-            { emoji: '🛡️', text: 'Secure Vault' },
-            { emoji: '👥', text: 'Group Splitting' },
-            { emoji: '📊', text: 'Cost Analytics' },
-          ].map((f, i) => (
-            <div key={i} className="login-feature-pill">
-              <span>{f.emoji}</span>
-              <span>{f.text}</span>
-            </div>
-          ))}
-        </motion.div>
       </motion.div>
     </div>
   );

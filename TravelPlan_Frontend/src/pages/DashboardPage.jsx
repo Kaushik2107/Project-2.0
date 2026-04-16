@@ -90,13 +90,13 @@ export default function DashboardPage() {
         
         <div className="dash-hero-content">
           <motion.div {...fadeUp(0.1)} className="dash-hero-badge">
-            ✨ AI-Powered Travel
+            ✨ Premium Travel
           </motion.div>
           <motion.h1 {...fadeUp(0.2)} className="dash-hero-title">
             Where to <span className="gradient-text">next</span>, {user?.name?.split(' ')[0] || 'Traveler'}?
           </motion.h1>
           <motion.p {...fadeUp(0.3)} className="dash-hero-sub">
-            Type any city in India and let our AI craft your perfect itinerary with optimized budgets and routes.
+            Type any city in India and get your perfect itinerary with optimized budgets and routes.
           </motion.p>
           
           <motion.form {...fadeUp(0.4)} className="dash-search-box" onSubmit={handleSearch}>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
           <div className="dash-trending-grid">
             {[
               { name: 'Goa', img: 'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&q=80&w=600' },
-              { name: 'Manali', img: 'https://images.unsplash.com/photo-1558222378-5a7ecb9308be?auto=format&fit=crop&q=80&w=600' },
+              { name: 'Manali', img: 'https://images.unsplash.com/photo-1600947509785-29fb4e7d1362?auto=format&fit=crop&q=80&w=1000' },
               { name: 'Jaipur', img: 'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&q=80&w=600' }
             ].map((city, i) => (
               <div key={i} className="dash-trend-card" onClick={() => navigate('/plan', { state: { initialCity: city.name } })}>

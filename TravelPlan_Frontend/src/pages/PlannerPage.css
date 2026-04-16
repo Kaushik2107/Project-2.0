@@ -290,8 +290,9 @@
 
 /* ── TRAVEL STYLE ── */
 .style-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
   gap: 12px;
 }
 
@@ -301,6 +302,9 @@
   align-items: center;
   gap: 6px;
   padding: 16px 8px;
+  flex: 1;
+  min-width: 140px;
+  max-width: 180px;
   background: rgba(255, 255, 255, 0.04);
   border: 1.5px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
