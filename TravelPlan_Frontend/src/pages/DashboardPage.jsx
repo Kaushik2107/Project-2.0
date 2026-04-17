@@ -165,12 +165,30 @@ export default function DashboardPage() {
             </div>
             <div className="dash-history-list">
               {history.map((trip, i) => (
-                <div key={i} className="dash-history-item" onClick={() => navigate('/result', { state: { plan: trip.plan, request: trip.request } })}>
+                <div 
+                  key={i} 
+                  className="dash-history-item" 
+                  onClick={() => {
+                    try {
+                      const plan = JSON.parse(trip.planSummary);
+                      const request = {
+                        city: trip.city,
+                        budget: trip.budget,
+                        days: trip.days,
+                        travelers: trip.travelers,
+                        foodType: trip.foodType
+                      };
+                      navigate('/result', { state: { plan, request } });
+                    } catch (err) {
+                      console.error('Failed to open history plan:', err);
+                    }
+                  }}
+                >
                   <div className="dash-hist-left">
                     <div className="dash-hist-icon"><MapPin size={18} /></div>
                     <div>
-                      <h4>{trip.request?.city || 'Trip'}</h4>
-                      <p>{trip.request?.days || '?'} Days • Budget: ₹{(trip.request?.budget || 0).toLocaleString()}</p>
+                      <h4>{trip.city || 'Trip'}</h4>
+                      <p>{trip.days || '?'} Days • Budget: ₹{(trip.budget || 0).toLocaleString()}</p>
                     </div>
                   </div>
                   <ArrowRight size={16} color="#64748B" />

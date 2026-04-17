@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.entity.Hotel;
 import com.kaushik.travelplan.entity.Place;
@@ -106,3 +106,4 @@ public class TransportService {
         return transportRepo.findByCityIgnoreCase(city);
     }
 }
+

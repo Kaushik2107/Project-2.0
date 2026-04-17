@@ -2,7 +2,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard, Compass, BarChart3, MapPin, Clock,
-  Menu, X, LogOut, User, Sparkles
+  Menu, X, LogOut, User, Sparkles, Users
 } from 'lucide-react';
 import { useState } from 'react';
 import './Navbar.css';
@@ -16,11 +16,11 @@ export default function Navbar() {
 
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+    { to: '/groups', label: 'Groups', icon: <Users size={16} /> },
     { to: '/plan', label: 'Plan Trip', icon: <Compass size={16} /> },
     { to: '/compare', label: 'Compare', icon: <BarChart3 size={16} /> },
     { to: '/explore', label: 'Explore', icon: <MapPin size={16} /> },
     { to: '/history', label: 'History', icon: <Clock size={16} /> },
-    { to: '/motivation', label: 'Motivation', icon: <Sparkles size={16} /> },
   ];
 
   const handleLogout = () => {

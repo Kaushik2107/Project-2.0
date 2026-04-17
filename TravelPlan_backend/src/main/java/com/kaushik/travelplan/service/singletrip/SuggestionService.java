@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.entity.Hotel;
 import com.kaushik.travelplan.entity.Place;
@@ -39,3 +39,4 @@ public class SuggestionService {
         return "✅ Your budget is fully maximized for the ultimate premium experience within your constraints!";
     }
 }
+

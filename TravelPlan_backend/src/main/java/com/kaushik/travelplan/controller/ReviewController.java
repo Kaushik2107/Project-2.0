@@ -2,7 +2,7 @@ package com.kaushik.travelplan.controller;
 
 import com.kaushik.travelplan.dto.ReviewRequest;
 import com.kaushik.travelplan.entity.Review;
-import com.kaushik.travelplan.service.ReviewService;
+import com.kaushik.travelplan.service.singletrip.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,3 +31,4 @@ public class ReviewController {
         return result;
     }
 }
+

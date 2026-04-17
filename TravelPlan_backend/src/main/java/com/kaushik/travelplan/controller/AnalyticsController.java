@@ -1,6 +1,6 @@
 package com.kaushik.travelplan.controller;
 
-import com.kaushik.travelplan.service.AnalyticsService;
+import com.kaushik.travelplan.service.singletrip.AnalyticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,3 +31,4 @@ public class AnalyticsController {
         return analyticsService.getAvailableCities();
     }
 }
+

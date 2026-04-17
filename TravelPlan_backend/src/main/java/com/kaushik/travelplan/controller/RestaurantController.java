@@ -1,7 +1,7 @@
 package com.kaushik.travelplan.controller;
 
 import com.kaushik.travelplan.entity.Restaurant;
-import com.kaushik.travelplan.service.RestaurantService;
+import com.kaushik.travelplan.service.singletrip.RestaurantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,3 +20,4 @@ public class RestaurantController {
         return restaurantService.getAllByCity(city);
     }
 }
+

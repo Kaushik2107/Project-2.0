@@ -96,20 +96,6 @@ export default function ResultPage() {
               {plan.weatherForecast && <span>🌡️ {plan.weatherForecast}</span>}
             </div>
           </motion.div>
-          {score && (
-            <motion.div
-              className="rp-score-ring"
-              style={{ background: `conic-gradient(${getScoreColor(score.overallScore)} ${score.overallScore * 3.6}deg, rgba(255,255,255,0.12) 0deg)` }}
-              initial={{ opacity: 0, scale: 0.5 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <div className="rp-score-inner">
-                <span className="rp-score-val" style={{ color: getScoreColor(score.overallScore) }}>{score.overallScore}</span>
-                <span className="rp-score-label">Score</span>
-              </div>
-            </motion.div>
-          )}
         </div>
       </div>
 
@@ -117,7 +103,6 @@ export default function ResultPage() {
       <motion.div className="rp-cost-strip" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
         {[
           { icon: <Wallet size={22} />, label: 'Total Cost', val: plan.totalCost, color: '#6C63FF' },
-          { icon: <CircleDollarSign size={22} />, label: 'Per Person', val: plan.perPersonCost, color: '#00D4FF' },
           { icon: <Hotel size={22} />, label: 'Hotel', val: plan.hotelCost, color: '#00E676' },
           { icon: <Utensils size={22} />, label: 'Food', val: plan.foodCost, color: '#FF6B9D' },
           { icon: <Car size={22} />, label: 'Transport', val: plan.transportCost || plan.travelCost, color: '#FFD700' },
@@ -165,7 +150,6 @@ export default function ResultPage() {
               <div className="rp-hotel-info">
                 <h2>{plan.hotel.name}</h2>
                 <div className="rp-hotel-meta">
-                  <span className="rp-stars"><Star size={14} fill="#FFD700" color="#FFD700" /> {plan.hotel.rating}</span>
                   <span className="rp-price-pill">₹{plan.hotel.pricePerNight?.toLocaleString()}/night</span>
                   <span style={{ color: '#94A3B8', fontSize: 13 }}><MapPin size={12} /> {request?.city}</span>
                 </div>
@@ -343,8 +327,8 @@ export default function ResultPage() {
                   <div className="rp-place-tile-overlay">
                     <span className="rp-place-tile-cat">{place.category}</span>
                     <h4>{place.name}</h4>
+                    {place.description && <p className="rp-place-tile-desc">{place.description}</p>}
                     <div className="rp-place-tile-meta">
-                      <span><Star size={11} fill="#FFD700" color="#FFD700" /> {place.rating}</span>
                       <span>{place.entryFee > 0 ? `₹${place.entryFee}` : 'Free Entry'}</span>
                       <span><Clock size={11} /> {place.durationMinutes || 60}m</span>
                     </div>
@@ -377,7 +361,6 @@ export default function ResultPage() {
                     <h4>{r.name}</h4>
                     <p>{r.cuisine}</p>
                     <div className="rp-rest-meta">
-                      <span><Star size={12} fill="#FFD700" color="#FFD700" /> {r.rating}</span>
                       <span>₹{r.pricePerMeal}/meal</span>
                     </div>
                   </div>
@@ -389,63 +372,8 @@ export default function ResultPage() {
 
         {/* ══════════════ BOTTOM ROW: Score + Budget ══════════════ */}
         <div className="rp-bottom-row">
-
-          {/* Trip Score */}
-          {score && (
-            <motion.div className="rp-section rp-score-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }}>
-              <div className="rp-section-title"><Trophy size={20} /> Trip Quality Score</div>
-              <p className="rp-score-verdict">{score.verdict}</p>
-              <div className="rp-score-bars">
-                {[
-                  { label: 'Budget Use', val: score.budgetUtilization, icon: <Wallet size={13} /> },
-                  { label: 'Diversity', val: score.diversityScore, icon: <Leaf size={13} /> },
-                  { label: 'Hotel', val: score.hotelQuality, icon: <Hotel size={13} /> },
-                  { label: 'Food', val: score.foodQuality, icon: <Utensils size={13} /> },
-                  { label: 'Itinerary', val: score.itineraryBalance, icon: <Target size={13} /> },
-                ].map((item, i) => (
-                  <div key={i} className="rp-score-bar-row">
-                    <div className="rp-score-bar-lbl">{item.icon} {item.label} <span style={{ color: getScoreColor(item.val) }}>{item.val}</span></div>
-                    <div className="rp-score-track">
-                      <motion.div
-                        className="rp-score-fill"
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.val}%` }}
-                        transition={{ delay: 0.7 + i * 0.1, duration: 0.8 }}
-                        style={{ background: getScoreColor(item.val) }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Budget Breakdown + Group */}
-          <div className="rp-right-col">
-            {plan.transportMode && (
-              <motion.div className="rp-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }}>
-                <div className="rp-section-title"><Car size={20} /> Transport</div>
-                <div className="rp-info-rows">
-                  <div className="rp-info-row"><span>Mode</span><strong style={{ textTransform: 'capitalize' }}>{plan.transportMode}</strong></div>
-                  <div className="rp-info-row"><span>Total Distance</span><strong>{plan.totalDistanceKm} km</strong></div>
-                  <div className="rp-info-row"><span>Cost</span><strong>₹{plan.transportCost?.toLocaleString()}</strong></div>
-                </div>
-              </motion.div>
-            )}
-
-            {gcb && (
-              <motion.div className="rp-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>
-                <div className="rp-section-title"><Users size={20} /> Group Split</div>
-                <div className="rp-info-rows">
-                  <div className="rp-info-row"><span>Travelers</span><strong>{gcb.travelers}</strong></div>
-                  <div className="rp-info-row"><span>Rooms Needed</span><strong>{gcb.roomsNeeded}</strong></div>
-                  <div className="rp-info-row"><span>Hotel/Person</span><strong>₹{gcb.hotelCostPerPerson?.toLocaleString()}</strong></div>
-                  <div className="rp-info-row"><span>Food/Person</span><strong>₹{gcb.foodCostPerPerson?.toLocaleString()}</strong></div>
-                  <div className="rp-info-row rp-info-row--highlight"><span>Per Person Total</span><strong>₹{gcb.perPersonCost?.toLocaleString()}</strong></div>
-                  {gcb.savingsVsSolo > 0 && <div className="rp-savings-msg">💰 Save ₹{gcb.savingsVsSolo?.toLocaleString()} vs solo!</div>}
-                </div>
-              </motion.div>
-            )}
+          {/* Left Column: Score + Budget Breakdown */}
+          <div className="rp-left-col">
 
             {bb && (
               <motion.div className="rp-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }}>
@@ -476,6 +404,20 @@ export default function ResultPage() {
                   {plan.totalCost < request?.budget && (
                     <div className="rp-budget-savings">✨ ₹{(request.budget - plan.totalCost).toLocaleString()} saved vs your budget!</div>
                   )}
+                </div>
+              </motion.div>
+            )}
+          </div>
+          
+          {/* Right Column: Transport + Insight */}
+          <div className="rp-right-col">
+            {plan.transportMode && (
+              <motion.div className="rp-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65 }}>
+                <div className="rp-section-title"><Car size={20} /> Transport</div>
+                <div className="rp-info-rows">
+                  <div className="rp-info-row"><span>Mode</span><strong style={{ textTransform: 'capitalize' }}>{plan.transportMode}</strong></div>
+                  <div className="rp-info-row"><span>Total Distance</span><strong>{plan.totalDistanceKm} km</strong></div>
+                  <div className="rp-info-row"><span>Cost</span><strong>₹{plan.transportCost?.toLocaleString()}</strong></div>
                 </div>
               </motion.div>
             )}

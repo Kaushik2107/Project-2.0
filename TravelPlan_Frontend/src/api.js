@@ -46,4 +46,14 @@ export const deleteHistory = (id) => api.delete(`/history/${id}`);
 export const submitReview = (data) => api.post('/reviews', data);
 export const getReviews = (entityId) => api.get(`/reviews/${entityId}`);
 
+// Groups & Collaborative Trips
+export const createGroup = (name) => api.post('/api/groups', { name });
+export const getMyGroups = () => api.get('/api/groups/my');
+export const addGroupMember = (groupId, email) => api.post(`/api/groups/${groupId}/members`, { email });
+export const initiateGroupTrip = (groupId, data) => api.post(`/api/groups/${groupId}/trips`, data);
+export const getActiveGroupTrip = (groupId) => api.get(`/api/groups/${groupId}/active-trip`);
+export const submitGroupResponse = (tripId, data) => api.post(`/api/groups/trips/${tripId}/responses`, data);
+export const getGroupTrip = (tripId) => api.get(`/api/groups/trips/${tripId}`);
+export const finalizeGroupTrip = (tripId) => api.post(`/api/groups/trips/${tripId}/finalize`);
+
 export default api;

@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.dto.ReviewRequest;
 import com.kaushik.travelplan.entity.Review;
@@ -56,3 +56,4 @@ public class ReviewService {
         return reviewRepo.findByEntityIdOrderByCreatedAtDesc(entityId).size();
     }
 }
+

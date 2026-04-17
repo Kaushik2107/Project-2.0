@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import org.springframework.stereotype.Service;
 import java.util.Random;
@@ -15,3 +15,4 @@ public class WeatherSimService {
         return conditions[random.nextInt(conditions.length)] + " with an average of " + temp + "°C";
     }
 }
+

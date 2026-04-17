@@ -6,11 +6,13 @@ import LoginPage from './pages/LoginPage';
 import ProfilePage from './pages/ProfilePage';
 import DashboardPage from './pages/DashboardPage';
 import PlannerPage from './pages/PlannerPage';
-import MotivationPage from './pages/MotivationPage';
 import ResultPage from './pages/ResultPage';
 import ComparePage from './pages/ComparePage';
 import ExplorePage from './pages/ExplorePage';
 import HistoryPage from './pages/HistoryPage';
+import GroupsPage from './pages/GroupsPage';
+import GroupDetailPage from './pages/GroupDetailPage';
+import GroupResponsePage from './pages/GroupResponsePage';
 import './App.css';
 
 /* ─── Route Guards ─── */
@@ -127,6 +129,36 @@ function AppRoutes() {
           <RequireAuth>
             <AuthenticatedLayout>
               <HistoryPage />
+            </AuthenticatedLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/groups"
+        element={
+          <RequireAuth>
+            <AuthenticatedLayout>
+              <GroupsPage />
+            </AuthenticatedLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/groups/:groupId"
+        element={
+          <RequireAuth>
+            <AuthenticatedLayout>
+              <GroupDetailPage />
+            </AuthenticatedLayout>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/group-trip/:tripId"
+        element={
+          <RequireAuth>
+            <AuthenticatedLayout>
+              <GroupResponsePage />
             </AuthenticatedLayout>
           </RequireAuth>
         }

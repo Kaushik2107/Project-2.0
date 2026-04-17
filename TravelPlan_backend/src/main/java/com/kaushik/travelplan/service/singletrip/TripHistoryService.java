@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.entity.TripHistory;
 import com.kaushik.travelplan.repository.TripHistoryRepository;
@@ -69,3 +69,4 @@ public class TripHistoryService {
         historyRepo.deleteById(id);
     }
 }
+

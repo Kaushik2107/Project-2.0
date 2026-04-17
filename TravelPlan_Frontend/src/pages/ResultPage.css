@@ -368,6 +368,17 @@
 }
 .rp-place-tile-cat { font-size: 10px; font-weight: 700; color: #FFD700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
 .rp-place-tile-overlay h4 { margin: 0 0 6px; font-size: 14px; font-weight: 800; color: white; }
+.rp-place-tile-desc {
+  font-size: 11px;
+  color: #94A3B8;
+  margin-bottom: 8px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 .rp-place-tile-meta { display: flex; gap: 10px; font-size: 11px; color: rgba(255,255,255,0.7); align-items: center; }
 
 /* ── RESTAURANTS ── */

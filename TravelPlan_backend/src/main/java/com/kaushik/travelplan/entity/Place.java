@@ -20,6 +20,7 @@ public class Place {
     private String bestTime;    // e.g., "morning", "evening", "anytime"
     private int durationMinutes; // recommended time to spend (in minutes)
     private boolean indoor;     // true = indoor (weather-proof), false = outdoor
+    private String description;
 
     // Getters and Setters
     public String getId() { return id; }
@@ -56,4 +57,7 @@ public class Place {
 
     public boolean isIndoor() { return indoor; }
     public void setIndoor(boolean indoor) { this.indoor = indoor; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 }

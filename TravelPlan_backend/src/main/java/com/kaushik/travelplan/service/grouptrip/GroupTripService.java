@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.grouptrip;
 
 import com.kaushik.travelplan.dto.GroupCostBreakdown;
 import com.kaushik.travelplan.entity.Hotel;
@@ -103,3 +103,4 @@ public class GroupTripService {
         return gcb;
     }
 }
+

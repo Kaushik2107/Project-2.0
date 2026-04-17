@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.dto.TripScore;
 import com.kaushik.travelplan.entity.Hotel;
@@ -101,3 +101,4 @@ public class TripScoringService {
         return score;
     }
 }
+

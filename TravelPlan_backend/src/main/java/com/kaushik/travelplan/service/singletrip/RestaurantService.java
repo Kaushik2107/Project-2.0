@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.entity.Restaurant;
 import com.kaushik.travelplan.repository.RestaurantRepository;
@@ -119,3 +119,4 @@ public class RestaurantService {
         return restaurantRepo.findByCityIgnoreCase(city);
     }
 }
+

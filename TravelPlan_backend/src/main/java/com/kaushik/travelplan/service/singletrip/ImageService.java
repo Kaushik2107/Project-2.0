@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -74,3 +74,4 @@ public class ImageService {
         return fallbackImages[(int)(Math.random() * fallbackImages.length)];
     }
 }
+

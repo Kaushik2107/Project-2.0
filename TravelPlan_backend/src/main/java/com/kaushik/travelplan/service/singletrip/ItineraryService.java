@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.dto.DayPlan;
 import com.kaushik.travelplan.dto.TimelineStep;
@@ -301,3 +301,4 @@ public class ItineraryService {
         return filtered.isEmpty() ? restaurants : filtered;
     }
 }
+

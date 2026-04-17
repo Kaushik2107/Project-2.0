@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 /**
  * @deprecated Use TripPlannerService instead. This class is kept for reference only.

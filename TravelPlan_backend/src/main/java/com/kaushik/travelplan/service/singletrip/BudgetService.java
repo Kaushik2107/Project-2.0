@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.dto.BudgetBreakdown;
 import com.kaushik.travelplan.util.SeasonUtil;
@@ -81,3 +81,4 @@ public class BudgetService {
     public double getTravelRatio() { return TRAVEL_RATIO; }
     public double getPlacesRatio() { return PLACES_RATIO; }
 }
+

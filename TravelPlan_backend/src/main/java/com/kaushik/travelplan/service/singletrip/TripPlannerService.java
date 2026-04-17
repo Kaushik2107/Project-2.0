@@ -1,10 +1,11 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.dto.*;
 import com.kaushik.travelplan.entity.*;
 import com.kaushik.travelplan.exception.*;
 import com.kaushik.travelplan.repository.HotelRepository;
 import com.kaushik.travelplan.repository.PlaceRepository;
+import com.kaushik.travelplan.service.grouptrip.GroupTripService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -359,3 +360,4 @@ public class TripPlannerService {
 
     }
 }
+

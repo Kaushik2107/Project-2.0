@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.entity.Place;
 import org.springframework.stereotype.Service;
@@ -70,3 +70,4 @@ public class KnapsackOptimizerService {
         return selected;
     }
 }
+

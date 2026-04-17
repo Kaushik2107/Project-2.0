@@ -1,7 +1,7 @@
 package com.kaushik.travelplan.controller;
 
 import com.kaushik.travelplan.entity.TripHistory;
-import com.kaushik.travelplan.service.TripHistoryService;
+import com.kaushik.travelplan.service.singletrip.TripHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -28,3 +28,4 @@ public class TripHistoryController {
         historyService.deleteHistory(id);
     }
 }
+

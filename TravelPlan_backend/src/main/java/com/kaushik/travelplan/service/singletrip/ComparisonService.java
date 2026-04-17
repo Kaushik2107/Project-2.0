@@ -1,4 +1,4 @@
-package com.kaushik.travelplan.service;
+package com.kaushik.travelplan.service.singletrip;
 
 import com.kaushik.travelplan.dto.ComparisonRequest;
 import com.kaushik.travelplan.dto.ComparisonResponse;
@@ -68,3 +68,4 @@ public class ComparisonService {
         return response;
     }
 }
+

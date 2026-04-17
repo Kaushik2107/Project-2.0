@@ -9,6 +9,10 @@
   --cafe-gold: #C5A059;    /* Refined Muted Gold */
   --cafe-olive: #606C38;   /* Sage/Olive Accent */
   --cafe-border: rgba(61, 49, 46, 0.08);
+
+  /* ── Core Mappings ── */
+  --primary: var(--cafe-clay);
+  --primary-gradient: var(--gradient-clay);
   
   /* ── Perspective & 3D ── */
   --perspective: 1000px;

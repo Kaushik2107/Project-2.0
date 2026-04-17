@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart3, MapPin, Calendar, Wallet, Users, Loader2, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { BarChart3, MapPin, Calendar, Wallet, Users, Loader2, ArrowRight, Eye, Sparkles, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { compareBudgets } from '../api';
 import './ComparePage.css';
@@ -8,6 +9,7 @@ import './ComparePage.css';
 export default function ComparePage() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
+  const navigate = useNavigate();
 
   const [form, setForm] = useState({
     city: '',
@@ -45,6 +47,19 @@ export default function ComparePage() {
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleViewTierPlan = (tierPlan) => {
+    // Reconstruct a request object similar to history view
+    const requestObj = {
+      city: form.city,
+      days: form.days,
+      budget: tierPlan.totalCost, // Use the actual cost of this tier
+      travelers: form.travelers,
+      foodType: form.foodType
+    };
+    
+    navigate('/result', { state: { plan: tierPlan, request: requestObj } });
   };
 
   const getTierLabel = (i) => ['Budget', 'Standard', 'Premium'][i] || `Tier ${i + 1}`;
@@ -89,38 +104,80 @@ export default function ComparePage() {
             </div>
           </div>
 
-          <button type="submit" className="btn btn-primary btn-lg submit-btn" disabled={loading}>
-            {loading ? <><Loader2 size={18} className="spin" /> Comparing...</> : <><BarChart3 size={18} /> Compare Budgets</>}
-          </button>
+          <div className="compare-actions">
+            <button type="submit" className="btn btn-primary btn-lg compare-submit-btn" disabled={loading}>
+              {loading ? <><Loader2 size={18} className="spin" /> Comparing...</> : <><BarChart3 size={18} /> Compare Budgets</>}
+            </button>
+          </div>
         </motion.form>
 
         {result && result.plans && (
           <motion.div className="compare-results" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}>
-            {result.recommendation && (
-              <div className="recommendation glass-card">
-                <p>{result.recommendation}</p>
-              </div>
-            )}
-
             <div className="compare-grid grid-3">
               {result.plans.map((plan, i) => (
                 <div key={i} className="compare-card glass-card" style={{ borderTop: `3px solid ${getTierColor(i)}` }}>
                   <div className="compare-tier" style={{ color: getTierColor(i) }}>{getTierLabel(i)}</div>
                   <div className="compare-price">₹{plan.totalCost?.toLocaleString()}</div>
-                  {plan.perPersonCost && <div className="compare-pp">₹{plan.perPersonCost?.toLocaleString()}/person</div>}
                   <div className="compare-details">
                     <div className="compare-row"><span>🏨 Hotel</span><strong>{plan.hotel?.name || 'N/A'}</strong></div>
-                    <div className="compare-row"><span>⭐ Rating</span><strong>{plan.hotel?.rating || '-'}</strong></div>
                     <div className="compare-row"><span>📍 Places</span><strong>{plan.places?.length || 0}</strong></div>
                     <div className="compare-row"><span>🍽️ Food</span><strong>₹{plan.foodCost?.toLocaleString()}</strong></div>
                     <div className="compare-row"><span>🚗 Travel</span><strong>₹{plan.travelCost?.toLocaleString()}</strong></div>
-                    {plan.tripScore && (
-                      <div className="compare-row"><span>🏆 Score</span><strong style={{ color: getTierColor(i) }}>{plan.tripScore.overallScore}/100</strong></div>
-                    )}
                   </div>
+                  <button className="btn btn-secondary view-tier-btn" onClick={() => handleViewTierPlan(plan)}>
+                    <Eye size={14} /> View Itinerary
+                  </button>
                 </div>
               ))}
             </div>
+
+            {result.recommendation && (() => {
+              try {
+                const rec = JSON.parse(result.recommendation);
+                return (
+                  <motion.div 
+                    className="recommendation-card definitive-pick"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                  >
+                    <div className="rec-top-pick">
+                      <div className="pick-label">
+                        <Sparkles size={16} /> Our Top Recommendation
+                      </div>
+                      <div className="pick-tier">{rec.best_tier_name} Tier</div>
+                    </div>
+                    
+                    <h2 className="rec-persuasive-title">{rec.persuasive_headline}</h2>
+                    
+                    <div className="justification-grid">
+                      {rec.quantitative_justifications?.map((j, i) => (
+                        <div key={i} className="justification-card">
+                          <div className="just-icon"><TrendingUp size={18} /></div>
+                          <p>{j}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="rec-decision-box">
+                      <div className="logic-section">
+                        <h4>Expert's Logic</h4>
+                        <p>{rec.decision_logic}</p>
+                      </div>
+                      <div className="final-tip-section">
+                        <div className="tip-badge">💡 Strategic Tip</div>
+                        <p>{rec.smart_tip}</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              } catch (e) {
+                return (
+                  <div className="recommendation-card">
+                    <p className="rec-text">{result.recommendation}</p>
+                  </div>
+                );
+              }
+            })()}
           </motion.div>
         )}
       </div>
