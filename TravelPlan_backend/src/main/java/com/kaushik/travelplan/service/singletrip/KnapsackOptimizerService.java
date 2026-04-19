@@ -13,15 +13,13 @@ import java.util.*;
 public class KnapsackOptimizerService {
 
     /**
-     * Select places to visit that maximize total rating within budget.
-     * Classic 0/1 Knapsack using Dynamic Programming.
+     * Select places to visit that maximize total rating within budget and time constraints.
      */
-    public List<Place> optimizePlaces(List<Place> places, int budgetLimit) {
-        if (places.isEmpty() || budgetLimit <= 0) return Collections.emptyList();
+    public List<Place> optimizePlaces(List<Place> places, int budgetLimit, int days) {
+        if (places.isEmpty() || budgetLimit <= 0 || days <= 0) return Collections.emptyList();
 
+        // ── STEP 1: Budget-based Optimization (Standard 0/1 Knapsack) ──
         int n = places.size();
-
-        // Scale down budget to avoid massive DP table (use ₹10 granularity)
         int scale = 10;
         int capacity = budgetLimit / scale;
         if (capacity <= 0) {
@@ -29,7 +27,6 @@ public class KnapsackOptimizerService {
             scale = 1;
         }
 
-        // DP table: dp[i][w] = max rating using first i items with capacity w
         double[][] dp = new double[n + 1][capacity + 1];
         int[] scaledCosts = new int[n];
 
@@ -37,20 +34,17 @@ public class KnapsackOptimizerService {
             scaledCosts[i] = Math.max(1, places.get(i).getEntryFee() / scale);
         }
 
-        // Fill DP table
         for (int i = 1; i <= n; i++) {
             int cost = scaledCosts[i - 1];
             double rating = places.get(i - 1).getRating();
-
             for (int w = 0; w <= capacity; w++) {
-                dp[i][w] = dp[i - 1][w]; // don't take item i
+                dp[i][w] = dp[i - 1][w];
                 if (cost <= w) {
                     dp[i][w] = Math.max(dp[i][w], dp[i - 1][w - cost] + rating);
                 }
             }
         }
 
-        // Backtrack to find selected items
         List<Place> selected = new ArrayList<>();
         int w = capacity;
         for (int i = n; i >= 1; i--) {
@@ -60,7 +54,40 @@ public class KnapsackOptimizerService {
             }
         }
 
-        // Verify total actual cost doesn't exceed budget
+        // ── STEP 2: Realistic Constraints (Human Sanity Checks) ──
+        
+        // 1. Cap by total count (Max 7-8 places per day is highly active, more is impossible)
+        int maxPlacesPossible = days * 8;
+        if (selected.size() > maxPlacesPossible) {
+            // Sort by rating to keep the best ones
+            selected.sort(Comparator.comparingDouble(Place::getRating).reversed());
+            selected = new ArrayList<>(selected.subList(0, maxPlacesPossible));
+        }
+
+        // 2. Cap by total duration (Max ~10 hours of activities per day)
+        int maxDurationMinutes = days * 600; // 10 hours per day
+        int currentDuration = selected.stream().mapToInt(Place::getDurationMinutes).sum();
+        
+        if (currentDuration > maxDurationMinutes) {
+            // Sort by Value Density (Rating per Minute)
+            selected.sort((p1, p2) -> {
+                double v1 = p1.getRating() / Math.max(1, p1.getDurationMinutes());
+                double v2 = p2.getRating() / Math.max(1, p2.getDurationMinutes());
+                return Double.compare(v2, v1);
+            });
+            
+            List<Place> cappedList = new ArrayList<>();
+            int totalD = 0;
+            for (Place p : selected) {
+                if (totalD + p.getDurationMinutes() <= maxDurationMinutes) {
+                    cappedList.add(p);
+                    totalD += p.getDurationMinutes();
+                }
+            }
+            selected = cappedList;
+        }
+
+        // Final budget check
         int totalCost = selected.stream().mapToInt(Place::getEntryFee).sum();
         while (totalCost > budgetLimit && !selected.isEmpty()) {
             Place removed = selected.remove(selected.size() - 1);

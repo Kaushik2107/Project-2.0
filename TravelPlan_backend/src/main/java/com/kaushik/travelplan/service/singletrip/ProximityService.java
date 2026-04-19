@@ -20,24 +20,48 @@ public class ProximityService {
      * This is a TSP approximation that reduces total travel distance.
      */
     public List<Place> optimizeRouteOrder(Hotel hotel, List<Place> places) {
-        if (places.size() <= 1) return new ArrayList<>(places);
+        if (places == null || places.size() <= 1) return (places == null) ? new ArrayList<>() : new ArrayList<>(places);
 
-        // Check if we have coordinates
-        boolean hasCoordinates = hotel != null && (hotel.getLatitude() != 0 || hotel.getLongitude() != 0);
-        for (Place p : places) {
-            if (p.getLatitude() != 0 || p.getLongitude() != 0) {
-                hasCoordinates = true;
-                break;
+        // Check if we have any coordinates at all
+        boolean anyCoords = (hotel != null && hotel.getLatitude() != 0 && hotel.getLongitude() != 0);
+        if (!anyCoords) {
+            for (Place p : places) {
+                if (p.getLatitude() != 0 && p.getLongitude() != 0) {
+                    anyCoords = true;
+                    break;
+                }
             }
         }
 
-        if (!hasCoordinates) return new ArrayList<>(places); // no coords, return as-is
+        if (!anyCoords) return new ArrayList<>(places); // No orientation possible
 
         List<Place> remaining = new ArrayList<>(places);
         List<Place> ordered = new ArrayList<>();
 
-        double currentLat = hotel != null ? hotel.getLatitude() : 0;
-        double currentLng = hotel != null ? hotel.getLongitude() : 0;
+        double currentLat;
+        double currentLng;
+
+        // Start from hotel if possible, otherwise start from the first place that has coordinates
+        if (hotel != null && hotel.getLatitude() != 0 && hotel.getLongitude() != 0) {
+            currentLat = hotel.getLatitude();
+            currentLng = hotel.getLongitude();
+        } else {
+            Place firstWithCoords = null;
+            for (Place p : remaining) {
+                if (p.getLatitude() != 0 && p.getLongitude() != 0) {
+                    firstWithCoords = p;
+                    break;
+                }
+            }
+            if (firstWithCoords != null) {
+                currentLat = firstWithCoords.getLatitude();
+                currentLng = firstWithCoords.getLongitude();
+                ordered.add(firstWithCoords);
+                remaining.remove(firstWithCoords);
+            } else {
+                return new ArrayList<>(places); // Fallback
+            }
+        }
 
         // Nearest-neighbor algorithm
         while (!remaining.isEmpty()) {
@@ -45,6 +69,9 @@ public class ProximityService {
             double minDist = Double.MAX_VALUE;
 
             for (Place p : remaining) {
+                // If place has no coordinates, treat it as very far or handle at the end
+                if (p.getLatitude() == 0 && p.getLongitude() == 0) continue;
+
                 double dist = HaversineUtil.distanceKm(currentLat, currentLng,
                         p.getLatitude(), p.getLongitude());
                 if (dist < minDist) {
@@ -58,6 +85,10 @@ public class ProximityService {
                 currentLat = nearest.getLatitude();
                 currentLng = nearest.getLongitude();
                 remaining.remove(nearest);
+            } else {
+                // All remaining places have no coordinates
+                ordered.addAll(remaining);
+                break;
             }
         }
 

@@ -59,10 +59,14 @@ public class TripResponse {
     private String weatherForecast;
     private String arrivalDetails; // info about transport from source city
     private String cityImageUrl;
+    private AiRecommendation aiRecommendation;
 
 
     public int getTotalCost() { return totalCost; }
     public void setTotalCost(int totalCost) { this.totalCost = totalCost; }
+
+    public AiRecommendation getAiRecommendation() { return aiRecommendation; }
+    public void setAiRecommendation(AiRecommendation aiRecommendation) { this.aiRecommendation = aiRecommendation; }
 
     public String getArrivalDetails() { return arrivalDetails; }
     public void setArrivalDetails(String arrivalDetails) { this.arrivalDetails = arrivalDetails; }

@@ -5,7 +5,7 @@ import {
   Hotel, MapPin, Utensils, Car, Star, Calendar, TrendingUp,
   Trophy, Users, Wallet, ArrowLeft, Lightbulb, Clock,
   Gauge, Target, Leaf, CircleDollarSign, X, ChevronDown, ChevronUp,
-  Sunrise, Sun, Sunset, Moon, Coffee, UtensilsCrossed
+  Sunrise, Sun, Sunset, Moon, Coffee, UtensilsCrossed, Sparkles, Zap, CheckCircle
 } from 'lucide-react';
 import './ResultPage.css';
 
@@ -120,13 +120,39 @@ export default function ResultPage() {
 
       <div className="rp-main">
 
-        {/* ══════════════ ARRIVAL BANNER ══════════════ */}
-        {plan.arrivalDetails && (
-          <motion.div className="rp-arrival-banner" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.35 }}>
-            <span className="rp-arrival-icon">🚀</span>
-            <div>
-              <strong>Journey Begins</strong>
-              <p>{plan.arrivalDetails}</p>
+        {/* ══════════════ AI VERDICT ══════════════ */}
+        {plan.aiRecommendation && (
+          <motion.div 
+            className="rp-ai-verdict-card"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.38 }}
+          >
+            <div className="rp-verdict-header">
+              <div className="rp-verdict-badge">
+                <Sparkles size={14} /> AI CONSULTANT VERDICT
+              </div>
+              <h2 className="rp-verdict-headline">{plan.aiRecommendation.persuasiveHeadline}</h2>
+            </div>
+            
+            <div className="rp-verdict-grid">
+              {plan.aiRecommendation.quantitativeJustifications?.map((just, idx) => (
+                <div key={idx} className="rp-just-item">
+                  <div className="rp-just-icon"><CheckCircle size={14} /></div>
+                  <span>{just}</span>
+                </div>
+              ))}
+            </div>
+
+            <div className="rp-verdict-body">
+              <div className="rp-verdict-logic">
+                <span>The Logic</span>
+                <p>{plan.aiRecommendation.decisionLogic}</p>
+              </div>
+              <div className="rp-verdict-tip">
+                <div className="rp-tip-tag"><Zap size={12} /> SMART TIP</div>
+                <p>{plan.aiRecommendation.smartTip}</p>
+              </div>
             </div>
           </motion.div>
         )}
@@ -377,34 +403,64 @@ export default function ResultPage() {
 
             {bb && (
               <motion.div className="rp-section" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75 }}>
-                <div className="rp-section-title"><Gauge size={20} /> Budget Breakdown</div>
-                <div className="rp-budget-items">
+                <div className="rp-section-title"><Gauge size={20} /> Budget Performance</div>
+                <div className="rp-budget-grid">
                   {[
-                    { label: 'Hotel', alloc: bb.hotelBudget, spent: bb.hotelActual, color: '#00E676' },
-                    { label: 'Food', alloc: bb.foodBudget, spent: bb.foodActual, color: '#FF6B9D' },
-                    { label: 'Travel', alloc: bb.travelBudget, spent: bb.travelActual, color: '#FFD700' },
-                    { label: 'Places', alloc: bb.placesBudget, spent: bb.placesActual, color: '#6C63FF' },
-                  ].map((item, i) => (
-                    <div key={i} className="rp-budget-item">
-                      <div className="rp-budget-item-header">
-                        <span style={{ color: item.color }}>{item.label}</span>
-                        <span style={{ fontSize: 12, color: '#94A3B8' }}>₹{(item.spent || 0).toLocaleString()} / ₹{(item.alloc || 0).toLocaleString()}</span>
-                      </div>
-                      <div className="rp-budget-track">
-                        <motion.div
-                          className="rp-budget-fill"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(100, ((item.spent || 0) / (item.alloc || 1)) * 100)}%` }}
-                          transition={{ delay: 0.8 + i * 0.1 }}
-                          style={{ background: item.color }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                  {plan.totalCost < request?.budget && (
-                    <div className="rp-budget-savings">✨ ₹{(request.budget - plan.totalCost).toLocaleString()} saved vs your budget!</div>
-                  )}
+                    { label: 'Hotel', alloc: bb.hotelBudget, spent: bb.hotelActual, color: '#00E676', icon: <Hotel size={16} /> },
+                    { label: 'Food', alloc: bb.foodBudget, spent: bb.foodActual, color: '#FF6B9D', icon: <Utensils size={16} /> },
+                    { label: 'Travel', alloc: bb.travelBudget, spent: bb.travelActual, color: '#FFD700', icon: <Car size={16} /> },
+                    { label: 'Places', alloc: bb.placesBudget, spent: bb.placesActual, color: '#6C63FF', icon: <MapPin size={16} /> },
+                  ].map((item, i) => {
+                    const ratio = (item.spent || 0) / (item.alloc || 1);
+                    const isOver = ratio > 1;
+                    const status = ratio < 0.8 ? "Optimal" : (ratio <= 1.05 ? "On Track" : "Adjusted");
+                    const statusColor = isOver ? '#FF6B9D' : (ratio > 0.8 ? '#FFD700' : '#00E676');
+
+                    return (
+                      <motion.div 
+                        key={i} 
+                        className="rp-budget-card"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.8 + i * 0.05 }}
+                      >
+                        <div className="rp-budget-card-header">
+                          <div className="rp-budget-card-icon" style={{ background: `${item.color}15`, color: item.color }}>
+                            {item.icon}
+                          </div>
+                          <div className="rp-budget-card-title">
+                            <span>Category</span>
+                            <span>{item.label}</span>
+                          </div>
+                          <span className="rp-status-pill" style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30` }}>
+                            {status}
+                          </span>
+                        </div>
+
+                        <div className="rp-budget-card-main">
+                          <span className="rp-budget-spent">₹{(item.spent || 0).toLocaleString()}</span>
+                        </div>
+
+                        <div className="rp-budget-track">
+                          <motion.div
+                            className="rp-budget-fill"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${Math.min(100, ratio * 100)}%` }}
+                            transition={{ duration: 1, delay: 1 + i * 0.1 }}
+                            style={{ background: isOver ? `linear-gradient(90deg, ${item.color}, #EF4444)` : item.color }}
+                          />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
                 </div>
+
+                {plan.totalCost < request?.budget && (
+                  <div className="rp-budget-savings">
+                    <span>✨</span>
+                    <span>₹{(request.budget - plan.totalCost).toLocaleString()} saved vs your overall budget!</span>
+                  </div>
+                )}
               </motion.div>
             )}
           </div>
@@ -422,12 +478,7 @@ export default function ResultPage() {
               </motion.div>
             )}
 
-            {plan.suggestionMessage && (
-              <motion.div className="rp-section rp-suggestion" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }}>
-              <div className="rp-section-title"><Lightbulb size={20} /> Planner Insight</div>
-                <p>{plan.suggestionMessage}</p>
-              </motion.div>
-            )}
+            {/* Removed redundant/legacy AI Insight section per user request to ensure 'proper' UI */}
           </div>
         </div>
 

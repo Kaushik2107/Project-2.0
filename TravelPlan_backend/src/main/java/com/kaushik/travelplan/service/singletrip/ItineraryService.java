@@ -5,6 +5,7 @@ import com.kaushik.travelplan.dto.TimelineStep;
 import com.kaushik.travelplan.entity.Hotel;
 import com.kaushik.travelplan.entity.Place;
 import com.kaushik.travelplan.entity.Restaurant;
+import com.kaushik.travelplan.util.HaversineUtil;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,20 +15,29 @@ import java.util.Map;
 import java.util.HashMap;
 
 /**
- * SERVICE 4: Itinerary Builder
- * Generates both structured DayPlan objects and legacy string-based plans.
+ * SERVICE 4: Itinerary Builder (Optimized)
+ * Generates structured, proximity-aware day plans with dynamic timelines.
  */
 @Service
 public class ItineraryService {
 
+    private static final int START_HOUR = 9;
+    private static final int AVG_SPEED_KMH = 30; // Average city travel speed
+    private static final int TRAVEL_BUFFER_MINS = 15; // Extra time for parking/waiting
+
     /**
-     * Build structured day-wise plan with places, meals, and transport.
+     * Build structured day-wise plan using contiguous path splitting.
      */
     public List<DayPlan> buildDetailedDayPlan(Hotel hotel, List<Place> places,
                                                List<Restaurant> restaurants, int days,
-                                               String transportMode, double dailyDistanceKm,
+                                               String transportMode, double totalDistanceKm,
                                                String arrivalDetails) {
         List<DayPlan> plans = new ArrayList<>();
+        if (days <= 0) return plans;
+
+        // 1. IMPROVED DISTRIBUTION: Contiguous Path Splitting
+        // Since 'places' is already optimized by ProximityService, we split it into N segments.
+        List<List<Place>> dayAssignments = distributePlacesContiguously(places, days);
 
         // Separate restaurants by meal type
         List<Restaurant> breakfastOptions = filterByMealType(restaurants, "breakfast");
@@ -38,72 +48,26 @@ public class ItineraryService {
             DayPlan dp = new DayPlan();
             dp.setDay(day);
             dp.setTransportMode(transportMode != null ? transportMode : "cab");
-            dp.setDistanceKm(Math.round(dailyDistanceKm * 100.0) / 100.0);
 
-            // Hotel action
-            if (day == 1) {
-                dp.setTitle("Day " + day + " — Arrival & Exploration");
-                String checkIn = "Check-in at " + (hotel != null ? hotel.getName() : "Hotel");
-                if (arrivalDetails != null) {
-                    dp.setHotelAction(arrivalDetails + " => " + checkIn);
-                } else {
-                    dp.setHotelAction(checkIn);
-                }
-            } else if (day == days) {
-                dp.setTitle("Day " + day + " — Final Day & Departure");
-                dp.setHotelAction("Check-out");
-            } else {
-                dp.setTitle("Day " + day + " — Sightseeing");
-                dp.setHotelAction("Stay");
-            }
-
-            // Distribute places fairly across all days using round-robin
-            List<Place> dayPlaces = new ArrayList<>();
-            for (int i = 0; i < places.size(); i++) {
-                if (i % days == (day - 1)) {
-                    dayPlaces.add(places.get(i));
-                }
-            }
+            List<Place> dayPlaces = dayAssignments.get(day - 1);
             dp.setPlaces(dayPlaces);
 
-            // Assign meals (rotate through available restaurants)
-            if (!breakfastOptions.isEmpty()) {
-                dp.setBreakfast(breakfastOptions.get((day - 1) % breakfastOptions.size()));
-            }
-            if (!lunchOptions.isEmpty()) {
-                dp.setLunch(lunchOptions.get((day - 1) % lunchOptions.size()));
-            }
-            if (!dinnerOptions.isEmpty()) {
-                dp.setDinner(dinnerOptions.get((day - 1) % dinnerOptions.size()));
-            }
+            // Assign meals
+            dp.setBreakfast(!breakfastOptions.isEmpty() ? breakfastOptions.get((day - 1) % breakfastOptions.size()) : null);
+            dp.setLunch(!lunchOptions.isEmpty() ? lunchOptions.get((day - 1) % lunchOptions.size()) : null);
+            dp.setDinner(!dinnerOptions.isEmpty() ? dinnerOptions.get((day - 1) % dinnerOptions.size()) : null);
 
-            // Dynamically generate day title based on place categories and calculate duration
-            if (day > 1 && day < days && !dayPlaces.isEmpty()) {
-                long beachCount = dayPlaces.stream().filter(p -> p.getCategory() != null && p.getCategory().toLowerCase().contains("beach")).count();
-                long historyCount = dayPlaces.stream().filter(p -> p.getCategory() != null && (p.getCategory().toLowerCase().contains("fort") || p.getCategory().toLowerCase().contains("museum") || p.getCategory().toLowerCase().contains("monument"))).count();
-                long religionCount = dayPlaces.stream().filter(p -> p.getCategory() != null && (p.getCategory().toLowerCase().contains("temple") || p.getCategory().toLowerCase().contains("church") || p.getCategory().toLowerCase().contains("mosque"))).count();
-                
-                if (beachCount >= 2) dp.setTitle("Day " + day + " — Sun, Sand & Beach Relaxation");
-                else if (historyCount >= 2) dp.setTitle("Day " + day + " — Heritage Walk & Cultural Exploration");
-                else if (religionCount >= 2) dp.setTitle("Day " + day + " — Spiritual Journey & Architecture");
-                else if (dayPlaces.size() >= 3) dp.setTitle("Day " + day + " — Action-Packed City Tour");
-                else dp.setTitle("Day " + day + " — Local Sightseeing");
-            }
+            // Hotel & Title Logic
+            updateDayTitleAndHotelAction(dp, hotel, day, days, arrivalDetails);
 
-            // Generate specific notes based on duration and indoor/outdoor status
-            if (dayPlaces.isEmpty()) {
-                dp.setNotes("Leisure day — relax at the hotel or explore nearby streets at your own pace.");
-            } else {
-                int totalMinutes = dayPlaces.stream().mapToInt(Place::getDurationMinutes).sum();
-                boolean mostlyOutdoor = dayPlaces.stream().filter(p -> !p.isIndoor()).count() > dayPlaces.size() / 2;
-                
-                String pacing = totalMinutes > 240 ? "A busy day ahead with " + (totalMinutes/60) + " hours of planned activities." : "A relaxed schedule with " + (totalMinutes/60) + " hours of activities.";
-                String gear = mostlyOutdoor ? " Wear comfortable walking shoes and carry sunscreen or an umbrella." : " Most of today's activities are indoors.";
-                dp.setNotes(pacing + gear);
-            }
+            // 2. DYNAMIC TIMELINE GENERATION
+            dp.setTimeline(generateDynamicTimeline(hotel, dayPlaces, dp.getBreakfast(), dp.getLunch(), dp.getDinner(), day, days));
 
-            // --- GENERATE TIMELINE (Expert/Expert format) ---
-            dp.setTimeline(generateTimeline(hotel, dayPlaces, dp.getBreakfast(), dp.getLunch(), dp.getDinner(), day, days));
+            // Calculate daily distance (rough estimate based on total)
+            dp.setDistanceKm(Math.round((totalDistanceKm / days) * 100.0) / 100.0);
+
+            // Notes based on workload
+            generateDayNotes(dp);
 
             plans.add(dp);
         }
@@ -111,180 +75,194 @@ public class ItineraryService {
         return plans;
     }
 
-    private List<TimelineStep> generateTimeline(Hotel hotel, List<Place> places, Restaurant breakfast, Restaurant lunch, Restaurant dinner, int day, int totalDays) {
+    private List<List<Place>> distributePlacesContiguously(List<Place> places, int days) {
+        List<List<Place>> assignments = new ArrayList<>();
+        for (int i = 0; i < days; i++) assignments.add(new ArrayList<>());
+        
+        if (places.isEmpty()) return assignments;
+
+        // We try to balance based on Visit Duration
+        int totalVisitTime = places.stream().mapToInt(Place::getDurationMinutes).sum();
+        int targetTimePerDay = totalVisitTime / days;
+
+        int currentDay = 0;
+        int currentDayTime = 0;
+
+        for (Place p : places) {
+            // If current day is getting too full, and it's not the last day, move to next
+            if (currentDay < days - 1 && currentDayTime + (p.getDurationMinutes() / 2) > targetTimePerDay) {
+                currentDay++;
+                currentDayTime = 0;
+            }
+            assignments.get(currentDay).add(p);
+            currentDayTime += p.getDurationMinutes();
+        }
+        
+        return assignments;
+    }
+
+    private static final int MAX_TRAVEL_TIME_MINS = 90; // Cap travel time to prevent coordinate bugs
+    private static final int DAY_END_HOUR = 22; // 10:00 PM
+
+    private List<TimelineStep> generateDynamicTimeline(Hotel hotel, List<Place> places, 
+                                                       Restaurant b, Restaurant l, Restaurant d, 
+                                                       int day, int totalDays) {
         List<TimelineStep> timeline = new ArrayList<>();
-        int currentHour = 8;
-        int currentMin = 0;
+        int h = START_HOUR, m = 0;
 
-        // 1. Breakfast (08:00 AM)
-        if (breakfast != null) {
-            Map<String, Object> details = new HashMap<>();
-            details.put("placeName", breakfast.getName());
-            details.put("location", breakfast.getCity());
-            details.put("description", "Enjoy a fresh " + breakfast.getCuisine() + " breakfast.");
-            details.put("costForTwo", "₹" + (breakfast.getPricePerMeal() * 2));
-            details.put("imageQuery", breakfast.getName() + " food");
-            timeline.add(createStep("08:00 AM", "09:00 AM", "Breakfast", "Breakfast at " + breakfast.getName(), details));
-            currentHour = 9;
+        TimeResult tr = new TimeResult(h, m);
+
+        // 1. Breakfast
+        if (b != null) {
+            timeline.add(createMealStep(tr, 60, "Breakfast", b));
         }
 
-        // 2. Travel to first place
-        if (!places.isEmpty()) {
-            Map<String, Object> details = new HashMap<>();
-            details.put("mode", "Auto / Cab");
-            details.put("duration", "30 mins");
-            details.put("cost", "₹150");
-            details.put("tips", "Best for city exploration");
-            timeline.add(createStep("09:00 AM", "09:30 AM", "Travel", "Travel to " + places.get(0).getName(), details));
-            currentHour = 9; currentMin = 30;
+        double prevLat = hotel != null ? hotel.getLatitude() : (places.isEmpty() ? 0 : places.get(0).getLatitude());
+        double prevLng = hotel != null ? hotel.getLongitude() : (places.isEmpty() ? 0 : places.get(0).getLongitude());
 
-            // 3. First Place
-            Place p1 = places.get(0);
-            String endTime = formatTime(currentHour, currentMin + p1.getDurationMinutes());
-            Map<String, Object> detailsPlace = new HashMap<>();
-            detailsPlace.put("placeName", p1.getName());
-            detailsPlace.put("location", p1.getCity());
-            detailsPlace.put("description", "A must-visit spot.");
-            detailsPlace.put("entryFee", "₹" + p1.getEntryFee());
-            detailsPlace.put("imageQuery", p1.getName() + " morning view");
-            timeline.add(createStep("09:30 AM", endTime, "Visit", "Explore " + p1.getName(), detailsPlace));
-            currentHour = 11; currentMin = 30; // reset
+        int midPoint = (places.size() / 2);
+        int placeIdx = 0;
+
+        for (Place p : places) {
+            // STOP ADDING if we have reached the end of a reasonable day (10 PM)
+            if (tr.h >= DAY_END_HOUR) {
+                break;
+            }
+
+            // Insert Lunch after some activities
+            if (placeIdx == midPoint && l != null && tr.h < 15) {
+                timeline.add(createMealStep(tr, 60, "Lunch", l));
+            }
+
+            // Travel to place
+            double dist = HaversineUtil.distanceKm(prevLat, prevLng, p.getLatitude(), p.getLongitude());
+            int travelTime = (int)Math.ceil((dist / AVG_SPEED_KMH) * 60) + TRAVEL_BUFFER_MINS;
+            
+            // SANITY CHECK: Cap travel time to prevent coordinate-related bugs (348 hours etc)
+            if (travelTime > MAX_TRAVEL_TIME_MINS) {
+                travelTime = MAX_TRAVEL_TIME_MINS;
+            }
+            
+            String travelStart = formatTime(tr.h, tr.m);
+            advanceTime(tr, travelTime);
+            timeline.add(createTravelStep(travelStart, formatTime(tr.h, tr.m), "Travel to " + p.getName(), dist, travelTime));
+
+            // Visit place
+            String visitStart = formatTime(tr.h, tr.m);
+            int duration = p.getDurationMinutes();
+            advanceTime(tr, duration);
+            timeline.add(createVisitStep(visitStart, formatTime(tr.h, tr.m), p));
+
+            prevLat = p.getLatitude();
+            prevLng = p.getLongitude();
+            placeIdx++;
         }
 
-        // 4. Travel to Lunch
-        Map<String, Object> travelLunch = new HashMap<>();
-        travelLunch.put("mode", "Cab");
-        travelLunch.put("duration", "60 mins");
-        travelLunch.put("cost", "₹200");
-        timeline.add(createStep("11:30 AM", "12:30 PM", "Travel", "Travel to Lunch", travelLunch));
-
-        // 5. Lunch
-        if (lunch != null) {
-            Map<String, Object> lunchDetails = new HashMap<>();
-            lunchDetails.put("placeName", lunch.getName());
-            lunchDetails.put("location", lunch.getCity());
-            lunchDetails.put("famousFor", lunch.getCuisine());
-            lunchDetails.put("costForTwo", "₹" + (lunch.getPricePerMeal() * 2));
-            lunchDetails.put("imageQuery", lunch.getName() + " meal");
-            timeline.add(createStep("12:30 PM", "01:30 PM", "Lunch", "Lunch at " + lunch.getName(), lunchDetails));
+        // 3. Dinner (if not already happened and not too late)
+        if (d != null && tr.h < DAY_END_HOUR) {
+            if (tr.h < 19) { tr.h = 19; tr.m = 0; }
+            timeline.add(createMealStep(tr, 60, "Dinner", d));
         }
 
-        // 6. Second Place (Afternoon)
-        if (places.size() > 1) {
-            Place p2 = places.get(1);
-            Map<String, Object> detailsPlace2 = new HashMap<>();
-            detailsPlace2.put("placeName", p2.getName());
-            detailsPlace2.put("location", p2.getCity());
-            detailsPlace2.put("description", "Absorb the local culture.");
-            detailsPlace2.put("entryFee", "₹" + p2.getEntryFee());
-            detailsPlace2.put("imageQuery", p2.getName() + " view");
-            timeline.add(createStep("02:00 PM", "04:00 PM", "Visit", "Visit " + p2.getName(), detailsPlace2));
-        }
-
-        // 7. Evening Activity
-        Map<String, Object> evening = new HashMap<>();
-        evening.put("placeName", "Local Markets");
-        evening.put("location", "City Center");
-        evening.put("description", "Experience the vibrant local life.");
-        evening.put("entryFee", "Free");
-        evening.put("imageQuery", "local market evening vibe");
-        timeline.add(createStep("05:00 PM", "06:30 PM", "Visit", "Evening Walk / Market Exploration", evening));
-
-        // 8. Dinner
-        if (dinner != null) {
-            Map<String, Object> dinnerDetails = new HashMap<>();
-            dinnerDetails.put("placeName", dinner.getName());
-            dinnerDetails.put("location", dinner.getCity());
-            dinnerDetails.put("costForTwo", "₹" + (dinner.getPricePerMeal() * 2));
-            dinnerDetails.put("imageQuery", dinner.getName() + " night view");
-            timeline.add(createStep("07:30 PM", "09:00 PM", "Dinner", "Dinner at " + dinner.getName(), dinnerDetails));
-        }
-
-        // 9. Stay
+        // 4. Return to Hotel
         if (hotel != null) {
-            String title = (day == 1) ? "Check-in Hotel" : "Return to Hotel";
-            Map<String, Object> stay = new HashMap<>();
-            stay.put("hotelName", hotel.getName());
-            stay.put("location", hotel.getCity());
-            stay.put("pricePerNight", "₹" + hotel.getPricePerNight());
-            stay.put("rating", String.valueOf(hotel.getRating()));
-            stay.put("imageQuery", hotel.getName() + " room");
-            timeline.add(createStep("09:30 PM", (day == totalDays ? "Departure" : "Next Day"), "Stay", title, stay));
+            String returnStart = formatTime(tr.h, tr.m);
+            timeline.add(createStep(returnStart, (day == totalDays ? "End" : "Night"), "Stay", 
+                (day == 1 ? "Check-in Hotel" : "Return to Hotel"), new HashMap<>()));
         }
 
         return timeline;
     }
 
-    private TimelineStep createStep(String start, String end, String type, String title, Map<String, Object> details) {
-        return new TimelineStep(start, end, type, title, details);
+    private static class TimeResult {
+        int h, m;
+        TimeResult(int h, int m) { this.h = h; this.m = m; }
     }
 
-    private String formatTime(int hour, int min) {
-        int h = hour + (min / 60);
-        int m = min % 60;
-        String ampm = h >= 12 ? "PM" : "AM";
-        int dh = h > 12 ? h - 12 : (h == 0 ? 12 : h);
-        return String.format("%02d:%02d %s", dh, m, ampm);
+    private void advanceTime(TimeResult tr, int addMins) {
+        tr.m += addMins;
+        tr.h += tr.m / 60;
+        tr.m %= 60;
+        // Cap hour at 30 to prevent insane overflows leaking if logic fails
+        if (tr.h > 30) tr.h = 30; 
     }
 
-    private void advanceTime(int h, int m, int add) {
-        // simplified
+    private TimelineStep createMealStep(TimeResult tr, int duration, String type, Restaurant r) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("placeName", r.getName());
+        details.put("cuisine", r.getCuisine());
+        details.put("costForTwo", "₹" + (r.getPricePerMeal() * 2));
+        String start = formatTime(tr.h, tr.m);
+        advanceTime(tr, duration);
+        return createStep(start, formatTime(tr.h, tr.m), type, type + " at " + r.getName(), details);
     }
 
-    /**
-     * Build legacy string-based day plan (backward compatible) with precise timeline estimates.
-     */
+    private TimelineStep createTravelStep(String start, String end, String title, double dist, int mins) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("distance", Math.round(dist * 10.0) / 10.0 + " km");
+        details.put("duration", mins + " mins");
+        details.put("mode", "Cab/Auto");
+        return createStep(start, end, "Travel", title, details);
+    }
+
+    private TimelineStep createVisitStep(String start, String end, Place p) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("placeName", p.getName());
+        details.put("category", p.getCategory());
+        details.put("entryFee", "₹" + p.getEntryFee());
+        return createStep(start, end, "Visit", "Explore " + p.getName(), details);
+    }
+
+    private void updateDayTitleAndHotelAction(DayPlan dp, Hotel hotel, int day, int days, String arrival) {
+        if (day == 1) {
+            dp.setTitle("Day 1: Arrival & Welcome");
+            dp.setHotelAction(arrival != null ? arrival + " & Check-in" : "Check-in at " + (hotel != null ? hotel.getName() : "Hotel"));
+        } else if (day == days) {
+            dp.setTitle("Day " + day + ": Memories & Departure");
+            dp.setHotelAction("Morning check-out");
+        } else {
+            dp.setTitle("Day " + day + ": Deep Exploration");
+            dp.setHotelAction("Stay");
+        }
+    }
+
+    private void generateDayNotes(DayPlan dp) {
+        if (dp.getPlaces().isEmpty()) {
+            dp.setNotes("A relaxed day for leisure shopping or hotel amenities.");
+            return;
+        }
+        int count = dp.getPlaces().size();
+        String vibe = count > 5 ? "Packed day!" : (count > 2 ? "Balanced pace." : "Very relaxed.");
+        dp.setNotes(vibe + " You'll be visiting " + count + " major attractions today. Wear walking shoes!");
+    }
+
+    private String formatTime(int h, int m) {
+        // Handle overflow cases to stay within standard clock bounds
+        int displayH = h % 24; 
+        String amp = displayH >= 12 ? "PM" : "AM";
+        int dh = displayH > 12 ? displayH - 12 : (displayH == 0 ? 12 : displayH);
+        return String.format("%02d:%02d %s", dh, m, amp);
+    }
+
+    private TimelineStep createStep(String s, String e, String type, String title, Map<String, Object> d) {
+        return new TimelineStep(s, e, type, title, d);
+    }
+
     public List<String> buildDayWisePlan(Hotel hotel, List<Place> places, int days) {
         List<String> plan = new ArrayList<>();
+        List<List<Place>> dayAssignments = distributePlacesContiguously(places, days);
 
-        for (int day = 1; day <= days; day++) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("Day ").append(day).append(": ");
-
-            int currentTimeHour = 10; // Start the day at 10:00 AM
-            int currentTimeMin = 0;
-
-            if (day == 1 && hotel != null) {
-                sb.append("[12:00 PM] Hotel Check-in (").append(hotel.getName()).append(") | ");
-                currentTimeHour = 14; // Start sightseeing afterwards if day 1
-            }
-
-            List<Place> dayPlaces = new ArrayList<>();
-            for (int i = 0; i < places.size(); i++) {
-                if (i % days == (day - 1)) {
-                    dayPlaces.add(places.get(i));
+        for (int i = 0; i < days; i++) {
+            StringBuilder sb = new StringBuilder("Day " + (i + 1) + ": ");
+            List<Place> dp = dayAssignments.get(i);
+            if (dp.isEmpty()) sb.append("Leisure time.");
+            else {
+                for (int j = 0; j < dp.size(); j++) {
+                    sb.append(dp.get(j).getName()).append(j < dp.size() - 1 ? " | " : "");
                 }
             }
-
-            int added = 0;
-            for (Place p : dayPlaces) {
-                if (added > 0) sb.append(" | ");
-                
-                String amPm = currentTimeHour >= 12 ? "PM" : "AM";
-                int displayHour = currentTimeHour > 12 ? currentTimeHour - 12 : (currentTimeHour == 0 ? 12 : currentTimeHour);
-                String timeStr = String.format("[%02d:%02d %s]", displayHour, currentTimeMin, amPm);
-                
-                sb.append(timeStr).append(" ").append(p.getName()).append(" (approx. ").append(p.getDurationMinutes()).append(" mins)");
-                
-                // Advance time
-                currentTimeMin += p.getDurationMinutes() + 30; // 30 mins travel/buffer
-                currentTimeHour += currentTimeMin / 60;
-                currentTimeMin %= 60;
-
-                added++;
-            }
-
-            if (day == days && hotel != null) {
-                sb.append(" | [11:00 AM] Hotel Check-out");
-            }
-
-            if (added == 0 && !(day == 1 && hotel != null) && !(day == days && hotel != null)) {
-                sb.append("Leisure time - Local sightseeing, shopping or relaxing.");
-            }
-
             plan.add(sb.toString());
         }
-
         return plan;
     }
 
@@ -292,13 +270,10 @@ public class ItineraryService {
         if (restaurants == null || restaurants.isEmpty()) return Collections.emptyList();
         List<Restaurant> filtered = new ArrayList<>();
         for (Restaurant r : restaurants) {
-            if (r.getMealType() != null &&
-                (r.getMealType().equalsIgnoreCase(mealType) || r.getMealType().equalsIgnoreCase("all"))) {
+            if (r.getMealType() != null && (r.getMealType().equalsIgnoreCase(mealType) || r.getMealType().equalsIgnoreCase("all"))) {
                 filtered.add(r);
             }
         }
-        // If no specific meal type found, return all restaurants
         return filtered.isEmpty() ? restaurants : filtered;
     }
 }
-
